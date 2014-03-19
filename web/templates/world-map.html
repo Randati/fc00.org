@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block content %}
+	
+	<div id="content-wrapper">
+		<div id="map"></div>
+	</div>
+
+	
+	<script src="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.js"></script>
+	<script type="text/javascript">
+		"use strict";
+
+		var nodes = {{ nodes|tojson|safe }}
+
+		var map = L.map('map').setView([0, 0], 2);
+
+		L.tileLayer('http://otile{s}.mqcdn.com/tiles/1.0.0/map/{z}/{x}/{y}.jpg', {
+			subdomains: '1234',
+			minZoom: 2,
+			maxZoom: 7,
+			noWrap: true
+		}).addTo(map);
+
+
+		for (var i = 0; i < nodes.length; ++i) {
+			var node = nodes[i];
+
+			node.circle = L.circle([node.latitude, node.longitude], 5000, {
+				// color: 'red',
+				stroke: false,
+				fillColor: 'red',
+				fillOpacity: 1
+			}).addTo(map);
+		}
+
+
+
+	</script>
+{% endblock %}

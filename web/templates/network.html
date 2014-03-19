@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+	<div id="general-info">
+		Nodes: <span id="number-of-nodes">-</span><br>
+		Links: <span id="number-of-connections">-</span><br>
+		Updated <span id="update-time">-</span><br>
+	</div>
+	
+	<div id="sidebar">
+		<div id="search-wrapper">
+			<input id="search-box" class="tt" type="text" placeholder="Search nodes...">
+		</div>
+		<div id="node-info"></div>
+	</div>
+
+	<div id="content-wrapper">
+		<canvas id="map"></canvas>
+	</div>
+
+	<script type="text/javascript" src="static/network.js"></script>
+{% endblock %}
