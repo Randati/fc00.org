@@ -48,7 +48,7 @@ def has_edge(a, b):
 	return False
 
 
-for port in range(11244, 11245 + 35):
+for port in range(11244, 11244 + 1):
 # for port in range(11247, 11248):
 	# G = pgv.AGraph(strict=True, directed=False, size='10!')
 	print port,
@@ -212,6 +212,6 @@ for e in G.iteredges():
 
 json_output = json.dumps(out_data)
 
-f = open('web/static/graph.json', 'w')
+f = open('web/graph.json', 'w')
 f.write(json_output)
 f.close()

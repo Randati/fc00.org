@@ -5,28 +5,21 @@
 		<title>fc00::/8</title>
 		<script src="jquery-2.0.3.min.js"></script>
 		<script src="jquery.autocomplete.min.js"></script>
-		<link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro|Droid+Sans|Duru+Sans|Quattrocento+Sans|Open+Sans' rel='stylesheet' type='text/css'>
-		<style type="text/css">
-			@font-face {
-				font-family: 'Inconsolata';
-				src: url("Inconsolata.otf");
-			}
 
+		<style type="text/css">
 			* {
 				margin: 0;
 				padding: 0;
 			}
 			html, body {
-				font-family: 'Source Sans Pro';
 				background: #F5F5F5;
+				font-family: 'sans serif';
 			}
 
 			#header {
 				background: #FFF;
 				height: 48px;
 				line-height: 48px;
-				/*box-shadow: 0 5px 3px rgba(0, 0, 0, 0.1);*/
-				z-index: 0;
 				position: absolute;
 				top: 0;
 				left: 0;
@@ -34,7 +27,7 @@
 			}
 
 			h1 {
-				font-family: 'Inconsolata';
+				font-family: 'Inconsolata', 'Consolas', 'Ubuntu Mono', monospace;
 				font-size: 32px;
 				float: left;
 				padding: 0 40px;
@@ -48,43 +41,7 @@
 
 			.grey {
 				color: #999;
-				/*font-size: 16px;*/
-				/*vertical-align: middle;*/
 			}
-
-			ul {
-				list-style-type: none;
-				height: 100%;
-			}
-			li {
-				float: left;
-				height: 100%;
-			}
-
-			#header a {
-				color: #777;
-				padding: 0 20px;
-				font-family: 'Source Sans Pro';
-				font-size: 14px;
-				text-decoration: none;
-				height: 100%;
-				display: block;
-
-			}
-
-			#header a:hover {
-				background: #EEE;
-			}
-
-			/*#map-wrapper {
-				position: absolute;
-				top: 0;
-				bottom: 0;
-				left: 0;
-				right: 0;
-				z-index: -1;
-			}*/
-
 
 
 
@@ -119,6 +76,7 @@
 				/*top: 0;*/
 				/*right: 10px;*/
 				/*z-index: 5;*/
+				font-size: 10px;
 			}
 			#search-box {
 				width: 100%;
@@ -158,13 +116,13 @@
 			}
 
 			.tt {
-				font-family: 'Source Code Pro', Consolas, monospace;
+				font-family: monospace;
 				font-size: 10px;
 			}
 
 			.autocomplete-suggestions {
-				font-family: 'Source Code Pro', Consolas, monospace;
-				font-size: 12px;
+				font-family: monospace;
+				font-size: 10px;
 				border: 1px solid #FFF;
 				background: #FFF;
 				overflow: auto;
@@ -180,7 +138,7 @@
 				color: #000000;
 			}
 
-			#canvas-wrapper {
+			#content-wrapper {
 				position: absolute;
 				top: 48px;
 				left: 0;
@@ -199,38 +157,24 @@
 	<body>
 		<div id="header">
 			<h1>fc00<span class="grey">::/8</span></h1>
-
-			<ul>
-				<li><a href="#">Network</a></li>
-				<li><a href="#">World map</a></li>
-				<li><a href="#">Tools</a></li>
-			</ul>
 		</div>
 
-		<!-- <div id="search-wrapper">
-			<input id="search-box" class="tt" type="text" placeholder="Search nodes...">
-		</div> -->
-		<!-- <div id="map-wrapper"> -->
-			
+		<div id="general-info">
+			Nodes: <span id="number-of-nodes">-</span><br>
+			Links: <span id="number-of-connections">-</span><br>
+			Updated <span id="update-time">-</span><br>
+		</div>
+		
+		<div id="sidebar">
+			<div id="search-wrapper">
+				<input id="search-box" class="tt" type="text" placeholder="Search nodes...">
+			</div>
+			<div id="node-info"></div>
+		</div>
 
-			<div id="general-info">
-				<!-- <br>	 -->
-				Nodes: <span id="number-of-nodes">-</span><br>
-				Links: <span id="number-of-connections">-</span><br>
-				Updated <span id="update-time">-</span><br>
-			</div>
-			<div id="sidebar">
-				<div id="search-wrapper">
-					<input id="search-box" class="tt" type="text" placeholder="Search nodes...">
-				</div>
-				<div id="node-info">
-					<span class="tt" style="opacity: 0">0000:0000:0000:0000:0000:0000:0000:0000</span>
-				</div>
-			</div>
-			<div id="canvas-wrapper">
-				<canvas id="map"></canvas>
-			</div>
-		<!-- </div> -->
+		<div id="content-wrapper">
+			<canvas id="map"></canvas>
+		</div>
 
 
 		<script>
@@ -309,11 +253,11 @@
 				for (var i = 0; i < nodes.length; ++i) {
 					var node = nodes[i];
 
-					if (node.radius > 2 || node.selected || node.hover) {
+					if (node.radius > 4 || node.selected || node.hover) {
 						var fontSize = 4 + node.radius * 0.4;
 
 						drawText(ctx, node.x, node.y - node.radius - 1,
-							node.label, node.textColor, fontSize + 'pt "ubuntu mono"');
+							node.label, node.textColor, fontSize + 'pt "monospace"');
 					}
 				}
 			}
@@ -369,14 +313,11 @@
 			function markPeers(node, depth) {
 				node.depth = depth;
 
-				// var colors = ['#000000', '#333333', '#555555', '#777777', '#999999', '#BBBBBB', '#DDDDDD'];
-				// var colors = ['#000000', '#29BBFF', '#09E844', '#FFBD0F', '#FF5E14', '#FF3C14', '#FF7357', '#FF9782', '#FFC8BD', '#FFE6E0'];
-				var colors = ['#000000', '#096EE8', '#09E8B8', '#36E809', '#ADE809', '#E8B809', '#E87509', '#E83A09'];
-				var txtCol = ['#000000', '#032247', '#034537', '#0E3D02', '#354703', '#403203', '#3D1F02', '#3B0E02'];
-				// var colors = ['#000000', '#064F8F', '#068F81', '#068F38', '#218F06', '#6F8F06', '#8F7806', '#8F5106'];
-				// var colors = ['#FFFFFF', '#29BBFF', '#17FF54', '#FFBD0F', '#FF3C14', '#590409'];
-				node.color = (depth >= colors.length) ? '#FFFFFF' : colors[depth];
-				node.textColor = (depth >= txtCol.length) ? '#FFFFFF' : txtCol[depth];
+				var colors = ['#000000', '#096EE8', '#09E8B8', '#36E809', '#ADE809', '#E8B809', '#E87509', '#E83A09', '#E86946', '#E8AC9B', '#E8C9C1'];
+				var txtCol = ['#000000', '#032247', '#034537', '#0E3D02', '#354703', '#403203', '#3D1F02', '#3B0E02', '#3B0E02', '#3B0E02', '#3B0E02'];
+
+				node.color = (depth >= colors.length) ? '#EEEEEE' : colors[depth];
+				node.textColor = (depth >= txtCol.length) ? '#EEEEEE' : txtCol[depth];
 
 				for (var i = 0; i < node.peers.length; ++i) {
 					var n = node.peers[i];
@@ -411,10 +352,8 @@
 					'<span class="tt">' + node.id + '</span><br>' +
 					'<br>' +
 					'<strong>Version:</strong> ' + node.version + '<br>' +
-					'<strong>Location:</strong> Helsinki, Finland<br>' +
 					'<strong>Peers:</strong> ' + node.peers.length + '<br>' +
 					'<table>' +
-					// '<tr><td></td><td><strong>Their peers #</strong></td></tr>' +
 					peers.map(function (n) {
 						return '<tr>' +
 							'<td><a href="#' + n.id + '" class="tt">' + n.label + '</a></td>' +
@@ -634,9 +573,6 @@
 						var node = nodes[i];
 						node.x = (node.x - mx) * ratio + mx;
 						node.y = (node.y - my) * ratio + my;
-						// node.x *= ratio;
-						// node.y *= ratio;
-						// node.radius *= ratio;
 						node.radius = (4 + node.size * 8) * zoom;
 					}
 
