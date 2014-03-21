@@ -73,7 +73,7 @@ function drawNetwork() {
 	for (var i = 0; i < nodes.length; ++i) {
 		var node = nodes[i];
 
-		if (node.radius > 2 || node.selected || node.hover) {
+		if (node.radius > 4 || node.selected || node.hover) {
 			var fontSize = 4 + node.radius * 0.4;
 
 			drawText(ctx, node.x, node.y - node.radius - 1,
@@ -135,8 +135,8 @@ function markPeers(node, depth) {
 
 	// var colors = ['#000000', '#333333', '#555555', '#777777', '#999999', '#BBBBBB', '#DDDDDD'];
 	// var colors = ['#000000', '#29BBFF', '#09E844', '#FFBD0F', '#FF5E14', '#FF3C14', '#FF7357', '#FF9782', '#FFC8BD', '#FFE6E0'];
-	var colors = ['#000000', '#096EE8', '#09E8B8', '#36E809', '#ADE809', '#E8B809', '#E87509', '#E83A09'];
-	var txtCol = ['#000000', '#032247', '#034537', '#0E3D02', '#354703', '#403203', '#3D1F02', '#3B0E02'];
+	var colors = ['#000000', '#096EE8', '#09E8B8', '#36E809', '#ADE809', '#E8B809', '#E87509', '#E83A09', '#E86946', '#E8AC9B', '#E8C9C1'];
+	var txtCol = ['#000000', '#032247', '#034537', '#0E3D02', '#354703', '#403203', '#3D1F02', '#3B0E02', '#3B0E02', '#3B0E02', '#3B0E02'];
 	// var colors = ['#000000', '#064F8F', '#068F81', '#068F38', '#218F06', '#6F8F06', '#8F7806', '#8F5106'];
 	// var colors = ['#FFFFFF', '#29BBFF', '#17FF54', '#FFBD0F', '#FF3C14', '#590409'];
 	node.color = (depth >= colors.length) ? '#FFFFFF' : colors[depth];

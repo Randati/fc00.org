@@ -11,49 +11,116 @@ import json
 import time
 import httplib2
 
+class Node:
+	def __init__(self, ip):
+		self.ip = ip
+		self.version = -1
+		self.label = ip[-4:]
 
-cjdns = admin.connect()
-root = admin.whoami(cjdns)
-rootIP = root['IP']
+	def __lt__(self, b):
+		return self.ip < b.ip
+
+class Edge:
+	def __init__(self, a, b):
+		self.a, self.b = sorted([a, b])
+
+all_nodes = dict()
+all_edges = []
+these_nodes = dict()
+these_edges = []
+
+def add_node(node):
+	if not node in all_nodes:
+		all_nodes[node.ip] = node
+	if not node in these_nodes:
+		these_nodes[node.ip] = node
+
+def add_edge(e):
+	all_edges.append(e)
+	these_edges.append(e)
+
+def has_edge(a, b):
+	a, b = sorted([a, b])
+
+	for e in these_edges:
+		if e.a.ip == a and e.b.ip == b:
+			return True
+	return False
+
+
+for port in range(11244, 11245 + 35):
+# for port in range(11247, 11248):
+	# G = pgv.AGraph(strict=True, directed=False, size='10!')
+	print port,
+	these_nodes = dict()
+	these_edges = []
+	cjdns = admin.connect('127.0.0.1', port, 'lmykvh031jl0h90wg9sp6vx1k76pkmu')
+	root = admin.whoami(cjdns)
+	rootIP = root['IP']
+	print rootIP
+
+	# if not rootIP in G.nodes():
+	# 	G.add_node(rootIP, label=rootIP[-4:])
+	add_node(Node(rootIP))
+
+	nodes = deque()
+	nodes.append(rootIP)
+
+	while len(nodes) != 0:
+		parentIP = nodes.popleft()
+		resp = cjdns.NodeStore_nodeForAddr(parentIP)
+		numLinks = 0
+
+		if 'result' in resp:
+			link = resp['result']
+			if 'linkCount' in link:
+				numLinks = int(resp['result']['linkCount'])
+				# G.get_node(parentIP).attr['version'] = resp['result']['protocolVersion']
+				all_nodes[parentIP].version = resp['result']['protocolVersion']
+
+			for i in range(0, numLinks):
+				resp = cjdns.NodeStore_getLink(parentIP, i)
+				childLink = resp['result']
+
+				if not 'child' in childLink:
+					print 'No child'
+					continue
+				childIP = childLink['child']
+
+				# Check to see if its one hop away from parent node
+				if childLink['isOneHop'] != 1:
+					continue
+
+				# If its a new node then we want to follow it
+				# if not childIP in G.nodes():
+				if not childIP in these_nodes:
+					add_node(Node(childIP))
+
+					# G.add_node(childIP, label=childIP[-4:])
+					# G.get_node(childIP).attr['version'] = 0
+					nodes.append(childIP)
+
+				# If there is not a link between the nodes we should put one there
+				# if not G.has_edge(childIP, parentIP):
+				if not has_edge(childIP, parentIP):
+					# all_edges.append(Edge(all_nodes[childIP], all_nodes[parentIP]))
+					add_edge(Edge(these_nodes[childIP], these_nodes[parentIP]))
+					# G.add_edge(parentIP, childIP, len=1.0)
+	# cjdns.disconnect()
+
+	print (len(these_nodes), len(these_edges))
+	# print 'Number of nodes:', G.number_of_nodes()
+	# print 'Number of edges:', G.number_of_edges()
+
+print "Total", (len(all_nodes), len(all_edges))
 
 G = pgv.AGraph(strict=True, directed=False, size='10!')
-G.add_node(rootIP, label=rootIP[-4:])
 
-nodes = deque()
-nodes.append(rootIP)
+for n in all_nodes.values():
+	G.add_node(n.ip, label=n.label)
 
-while len(nodes) != 0:
-	parentIP = nodes.popleft()
-	resp = cjdns.NodeStore_nodeForAddr(parentIP)
-	numLinks = 0
-
-	if 'result' in resp:
-		link = resp['result']
-		if 'linkCount' in link:
-			numLinks = int(resp['result']['linkCount'])
-			G.get_node(parentIP).attr['version'] = resp['result']['protocolVersion']
-
-		for i in range(0, numLinks):
-			resp = cjdns.NodeStore_getLink(parentIP, i)
-			childLink = resp['result']
-			childIP = childLink['child']
-
-			# Check to see if its one hop away from parent node
-			if childLink['isOneHop'] != 1:
-				continue
-
-			# If its a new node then we want to follow it
-			if not childIP in G.nodes():
-				G.add_node(childIP, label=childIP[-4:])
-				G.get_node(childIP).attr['version'] = 0
-				nodes.append(childIP)
-
-			# If there is not a link between the nodes we should put one there
-			if not G.has_edge(childIP, parentIP):
-				G.add_edge(parentIP, childIP, len=1.0)
-
-print 'Number of nodes:', G.number_of_nodes()
-print 'Number of edges:', G.number_of_edges()
+for e in all_edges:
+	G.add_edge(e.a.ip, e.b.ip, len=1.0)
 
 G.layout(prog='neato', args='-Gepsilon=0.0001 -Gmaxiter=100000') # neato, fdp, dot
 

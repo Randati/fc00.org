@@ -10,6 +10,7 @@
 html, body {
 	font-family: 'Source Sans Pro';
 	background: #F5F5F5;
+	overflow: hidden;
 }
 
 #header {
@@ -99,7 +100,8 @@ li {
 	/*bottom: 0;*/
 	min-width: 200px;
 	z-index: 999;
-	/*overflow-y: scroll;*/
+	/*overflow-y: auto;*/
+	/*overflow: hidden;*/
 	font-size: 12px;
 }
 
@@ -135,6 +137,11 @@ h2 {
 	color: #29BBFF;
 }
 
+#node-info {
+	/*position: absolute;*/
+	/*overflow-y: scroll;*/
+	/*background: rgba(220, 220, 220, 0.8);*/
+}
 #node-info table {
 	width: 100%;
 }
