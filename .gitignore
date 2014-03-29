@@ -1,2 +1,5 @@
 .cache
+*.pyc
 graph.json
+mapper-confs/*
+mapperconf_sh.py

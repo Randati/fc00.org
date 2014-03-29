@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 
-cjdns_path = '/home/antti/prog/cjdns/'
-
+from mapperconf_sh import *
 import sys
-sys.path.append(cjdns_path + 'contrib/python/cjdnsadmin/')
+sys.path.append(cjdns_path + '/contrib/python/cjdnsadmin/')
 import adminTools as admin
 from collections import deque
 import pygraphviz as pgv
@@ -47,20 +46,15 @@ def has_edge(a, b):
 			return True
 	return False
 
-
-for port in range(11244, 11245 + 35):
-# for port in range(11247, 11248):
-	# G = pgv.AGraph(strict=True, directed=False, size='10!')
+for port in range(rpc_firstport, rpc_firstport + num_of_nodes):
 	print port,
 	these_nodes = dict()
 	these_edges = []
-	cjdns = admin.connect('127.0.0.1', port, 'lmykvh031jl0h90wg9sp6vx1k76pkmu')
+	cjdns = admin.connect(rpc_connect, port, rpc_pw)
 	root = admin.whoami(cjdns)
 	rootIP = root['IP']
 	print rootIP
 
-	# if not rootIP in G.nodes():
-	# 	G.add_node(rootIP, label=rootIP[-4:])
 	add_node(Node(rootIP))
 
 	nodes = deque()
@@ -75,7 +69,6 @@ for port in range(11244, 11245 + 35):
 			link = resp['result']
 			if 'linkCount' in link:
 				numLinks = int(resp['result']['linkCount'])
-				# G.get_node(parentIP).attr['version'] = resp['result']['protocolVersion']
 				all_nodes[parentIP].version = resp['result']['protocolVersion']
 
 			for i in range(0, numLinks):
@@ -92,20 +85,13 @@ for port in range(11244, 11245 + 35):
 					continue
 
 				# If its a new node then we want to follow it
-				# if not childIP in G.nodes():
 				if not childIP in these_nodes:
 					add_node(Node(childIP))
-
-					# G.add_node(childIP, label=childIP[-4:])
-					# G.get_node(childIP).attr['version'] = 0
 					nodes.append(childIP)
 
 				# If there is not a link between the nodes we should put one there
-				# if not G.has_edge(childIP, parentIP):
 				if not has_edge(childIP, parentIP):
-					# all_edges.append(Edge(all_nodes[childIP], all_nodes[parentIP]))
 					add_edge(Edge(these_nodes[childIP], these_nodes[parentIP]))
-					# G.add_edge(parentIP, childIP, len=1.0)
 	# cjdns.disconnect()
 
 	print (len(these_nodes), len(these_edges))
@@ -117,7 +103,7 @@ print "Total", (len(all_nodes), len(all_edges))
 G = pgv.AGraph(strict=True, directed=False, size='10!')
 
 for n in all_nodes.values():
-	G.add_node(n.ip, label=n.label)
+	G.add_node(n.ip, label=n.label, version=n.version)
 
 for e in all_edges:
 	G.add_edge(e.a.ip, e.b.ip, len=1.0)
