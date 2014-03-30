@@ -45,7 +45,7 @@ function drawText(ctx, x, y, text, color, font) {
 
 function drawNetwork() {
 	ctx.save();
-	ctx.resetTransform();
+	ctx.setTransform(1, 0, 0, 1, 0, 0);
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 	ctx.restore();
 
@@ -175,7 +175,6 @@ function showNodeInfo(node) {
 		'<span class="tt">' + node.id + '</span><br>' +
 		'<br>' +
 		'<strong>Version:</strong> ' + node.version + '<br>' +
-		'<strong>Location:</strong> Helsinki, Finland<br>' +
 		'<strong>Peers:</strong> ' + node.peers.length + '<br>' +
 		'<table>' +
 		// '<tr><td></td><td><strong>Their peers #</strong></td></tr>' +
