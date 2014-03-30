@@ -1,24 +1,16 @@
-@font-face {
-	font-family: 'Inconsolata';
-	src: url("/static/Inconsolata.otf");
-}
-
 * {
 	margin: 0;
 	padding: 0;
 }
 html, body {
-	font-family: 'Source Sans Pro';
 	background: #F5F5F5;
-	overflow: hidden;
+	font-family: 'sans serif';
 }
 
 #header {
 	background: #FFF;
 	height: 48px;
 	line-height: 48px;
-	/*box-shadow: 0 5px 3px rgba(0, 0, 0, 0.1);*/
-	/*z-index: 1;*/
 	position: absolute;
 	top: 0;
 	left: 0;
@@ -26,7 +18,7 @@ html, body {
 }
 
 h1 {
-	font-family: 'Inconsolata';
+	font-family: 'Inconsolata', 'Consolas', 'Ubuntu Mono', monospace;
 	font-size: 32px;
 	float: left;
 	padding: 0 40px;
@@ -40,8 +32,6 @@ small {
 
 .grey {
 	color: #999;
-	/*font-size: 16px;*/
-	/*vertical-align: middle;*/
 }
 
 ul {
@@ -56,7 +46,7 @@ li {
 #header a {
 	color: #777;
 	padding: 0 20px;
-	font-family: 'Source Sans Pro';
+	font-family: 'Open Sans', 'sans-serif';
 	font-size: 14px;
 	text-decoration: none;
 	height: 100%;
@@ -68,14 +58,6 @@ li {
 	background: #EEE;
 }
 
-/*#map-wrapper {
-	position: absolute;
-	top: 0;
-	bottom: 0;
-	left: 0;
-	right: 0;
-	z-index: -1;
-}*/
 
 
 
@@ -98,10 +80,9 @@ li {
 	top: 0;
 	right: 0;
 	/*bottom: 0;*/
-	min-width: 200px;
+	min-width: 250px;
 	z-index: 999;
-	/*overflow-y: auto;*/
-	/*overflow: hidden;*/
+	/*overflow-y: scroll;*/
 	font-size: 12px;
 }
 
@@ -112,6 +93,7 @@ li {
 	/*top: 0;*/
 	/*right: 10px;*/
 	/*z-index: 5;*/
+	font-size: 10px;
 }
 #search-box {
 	width: 100%;
@@ -137,11 +119,6 @@ h2 {
 	color: #29BBFF;
 }
 
-#node-info {
-	/*position: absolute;*/
-	/*overflow-y: scroll;*/
-	/*background: rgba(220, 220, 220, 0.8);*/
-}
 #node-info table {
 	width: 100%;
 }
@@ -156,13 +133,13 @@ h2 {
 }
 
 .tt {
-	font-family: 'Source Code Pro', Consolas, monospace;
+	font-family: monospace;
 	font-size: 10px;
 }
 
 .autocomplete-suggestions {
-	font-family: 'Source Code Pro', Consolas, monospace;
-	font-size: 12px;
+	font-family: monospace;
+	font-size: 10px;
 	border: 1px solid #FFF;
 	background: #FFF;
 	overflow: auto;
