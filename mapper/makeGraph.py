@@ -198,6 +198,6 @@ for e in G.iteredges():
 
 json_output = json.dumps(out_data)
 
-f = open('web/static/graph.json', 'w')
+f = open(graph_output, 'w')
 f.write(json_output)
 f.close()

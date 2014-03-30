@@ -2,4 +2,4 @@
 *.pyc
 graph.json
 mapper-confs/*
-mapperconf_sh.py
+conf_sh.py

@@ -2,9 +2,8 @@
 # This file should be runnable by bash and python!
 #
 
-
 cjdns_path="/home/user/cjdns"
-
+graph_output="../web/static/graph.json"
 num_of_nodes=30
 
 # Where mapper nodes connect to

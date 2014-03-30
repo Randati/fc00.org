@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source mapperconf_sh.py
+source conf_sh.py
 mkdir -p mapper-confs
 
 for i in $(seq 1 $num_of_nodes)
