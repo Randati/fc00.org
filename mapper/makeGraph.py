@@ -118,7 +118,8 @@ def get_full_network():
 def download_names_from_nameinfo():
 	page = 'http://[fc5d:baa5:61fc:6ffd:9554:67f0:e290:7535]/nodes/list.json'
 	print 'Downloading names from Mikey\'s nodelist...',
-
+	sys.stdout.flush()
+	
 	ip_dict = dict()
 	http = httplib2.Http('.cache', timeout=15.0)
 	r, content = http.request(page, 'GET')
