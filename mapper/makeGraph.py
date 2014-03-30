@@ -198,7 +198,7 @@ def get_graph_json(G):
 		pos = n.attr['pos'].split(',', 1)
 
 		out_data['nodes'].append({
-			'id': n.attr['label'],
+			'id': n.name,
 			'label': n.attr['label'],
 			'version': n.attr['version'],
 			'x': float(pos[0]),
