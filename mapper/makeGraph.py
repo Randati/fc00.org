@@ -50,10 +50,15 @@ for port in range(rpc_firstport, rpc_firstport + num_of_nodes):
 	print port,
 	these_nodes = dict()
 	these_edges = []
-	cjdns = admin.connect(rpc_connect, port, rpc_pw)
-	root = admin.whoami(cjdns)
-	rootIP = root['IP']
-	print rootIP
+
+	try:
+		cjdns = admin.connect(rpc_connect, port, rpc_pw)
+		root = admin.whoami(cjdns)
+		rootIP = root['IP']
+		print rootIP
+	except:
+		print 'Connecting failed.'
+		continue
 
 	add_node(Node(rootIP))
 
