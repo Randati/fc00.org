@@ -1,14 +1,16 @@
 #!/usr/bin/env python
 
-from conf_sh import *
+import conf_sh as conf
 import sys
-sys.path.append(cjdns_path + '/contrib/python/cjdnsadmin/')
+sys.path.append(conf.cjdns_path + '/contrib/python/cjdnsadmin/')
 import adminTools as admin
 from collections import deque
 import pygraphviz as pgv
 import json
 import time
 import httplib2
+import traceback
+
 
 class Node:
 	def __init__(self, ip):
@@ -23,131 +25,143 @@ class Edge:
 	def __init__(self, a, b):
 		self.a, self.b = sorted([a, b])
 
-all_nodes = dict()
-all_edges = []
-these_nodes = dict()
-these_edges = []
-
-def add_node(node):
-	if not node in all_nodes:
-		all_nodes[node.ip] = node
-	if not node in these_nodes:
-		these_nodes[node.ip] = node
-
-def add_edge(e):
-	all_edges.append(e)
-	these_edges.append(e)
-
-def has_edge(a, b):
-	a, b = sorted([a, b])
-
-	for e in these_edges:
-		if e.a.ip == a and e.b.ip == b:
-			return True
-	return False
-
-for port in range(rpc_firstport, rpc_firstport + num_of_nodes):
-	print port,
-	these_nodes = dict()
-	these_edges = []
-
-	try:
-		cjdns = admin.connect(rpc_connect, port, rpc_pw)
-		root = admin.whoami(cjdns)
-		rootIP = root['IP']
-		print rootIP
-	except:
-		print 'Connecting failed.'
-		continue
-
-	add_node(Node(rootIP))
-
-	nodes = deque()
-	nodes.append(rootIP)
-
-	while len(nodes) != 0:
-		parentIP = nodes.popleft()
-		resp = cjdns.NodeStore_nodeForAddr(parentIP)
-		numLinks = 0
-
-		if 'result' in resp:
-			link = resp['result']
-			if 'linkCount' in link:
-				numLinks = int(resp['result']['linkCount'])
-				all_nodes[parentIP].version = resp['result']['protocolVersion']
-
-			for i in range(0, numLinks):
-				resp = cjdns.NodeStore_getLink(parentIP, i)
-				childLink = resp['result']
-
-				if not 'child' in childLink:
-					print 'No child'
-					continue
-				childIP = childLink['child']
-
-				# Check to see if its one hop away from parent node
-				if childLink['isOneHop'] != 1:
-					continue
-
-				# If its a new node then we want to follow it
-				if not childIP in these_nodes:
-					add_node(Node(childIP))
-					nodes.append(childIP)
-
-				# If there is not a link between the nodes we should put one there
-				if not has_edge(childIP, parentIP):
-					add_edge(Edge(these_nodes[childIP], these_nodes[parentIP]))
-	# cjdns.disconnect()
-
-	print (len(these_nodes), len(these_edges))
-	# print 'Number of nodes:', G.number_of_nodes()
-	# print 'Number of edges:', G.number_of_edges()
-
-print "Total", (len(all_nodes), len(all_edges))
-
-G = pgv.AGraph(strict=True, directed=False, size='10!')
-
-for n in all_nodes.values():
-	G.add_node(n.ip, label=n.label, version=n.version)
-
-for e in all_edges:
-	G.add_edge(e.a.ip, e.b.ip, len=1.0)
-
-G.layout(prog='neato', args='-Gepsilon=0.0001 -Gmaxiter=100000') # neato, fdp, dot
-
-
-max_neighbors = 0
-
-for n in G.iternodes():
-	neighbors = len(G.neighbors(n))
-	if neighbors > max_neighbors:
-		max_neighbors = neighbors
-
-print 'Max neighbors:', max_neighbors
+	def is_in(self, edges):
+		for e in edges:
+			if e.a.ip == self.a.ip and e.b.ip == self.b.ip:
+					return True
+		return False
 
 
 
-def download_node_names():
-	print "Downloading names"
+def get_network_from_cjdns(ip, port, password):
+	nodes = dict()
+	edges = []
+
+	cjdns = admin.connect(ip, port, password)
+	me = admin.whoami(cjdns)
+	my_ip = me['IP']
+	nodes[my_ip] = Node(my_ip)
+
+	nodes_to_check = deque()
+	nodes_to_check.append(my_ip)
+
+	while len(nodes_to_check) != 0:
+		current_ip = nodes_to_check.popleft()
+		resp = cjdns.NodeStore_nodeForAddr(current_ip)
+
+		if not 'result' in resp or not 'linkCount' in resp['result']:
+			continue
+
+		result = resp['result']
+		link_count = result['linkCount']
+		
+		if 'protocolVersion' in result:
+			nodes[current_ip].version = result['protocolVersion']
+
+
+		for i in range(0, link_count):
+			result = cjdns.NodeStore_getLink(current_ip, i)['result']
+			if not 'child' in result:
+				continue
+
+			child_ip = result['child']
+
+			# Add links with one hop only
+			if result['isOneHop'] != 1:
+				continue
+
+			# Add node
+			if not child_ip in nodes:
+				nodes[child_ip] = Node(child_ip)
+				nodes_to_check.append(child_ip)
+
+			# Add edge
+			e = Edge(nodes[current_ip], nodes[child_ip])
+			if not e.is_in(edges):
+				edges.append(e)
+
+	return (nodes, edges)
+
+
+def get_full_network():
+	all_nodes = dict()
+	all_edges = []
+
+	for i in range(0, conf.num_of_nodes):
+		port = conf.rpc_firstport + i
+
+		print '[%d/%d] Connecting to %s:%d...' % (i + 1, conf.num_of_nodes, conf.rpc_connect, port),
+		sys.stdout.flush()
+
+		try:
+			nodes, edges = get_network_from_cjdns(conf.rpc_connect, port, conf.rpc_pw)
+		except Exception as ex:
+			print 'Fail!'
+			print traceback.format_exc()
+			continue
+
+		print '%d nodes, %d edges' % (len(nodes), len(edges))
+
+		for ip, n in nodes.iteritems():
+			all_nodes[ip] = n
+
+		for e in edges:
+			if not e.is_in(all_edges):
+				all_edges.append(e)
+
+	return (all_nodes, all_edges)
+
+
+
+
+
+def download_names_from_nameinfo():
 	page = 'http://[fc5d:baa5:61fc:6ffd:9554:67f0:e290:7535]/nodes/list.json'
+	print 'Downloading names from Mikey\'s nodelist...',
 
 	ip_dict = dict()
-	h = httplib2.Http(".cache", timeout=15.0)
-	try:
-		r, content = h.request(page, "GET")
-		nameip = json.loads(content)['nodes']
+	http = httplib2.Http('.cache', timeout=15.0)
+	r, content = http.request(page, 'GET')
+	name_and_ip = json.loads(content)['nodes']
 
-		for node in nameip:
-			ip_dict[node['ip']] = node['name']
+	for node in name_and_ip:
+		ip_dict[node['ip']] = node['name']
 
-		print "Names downloaded"
-	except Exception as e:
-		print "Connection to Mikey's nodelist failed, continuing without names", e
-
+	print 'Done!'
 	return ip_dict
 
 
-node_names = download_node_names()
+
+def set_node_names(nodes):
+	try:
+		ip_dict = download_names_from_nameinfo()
+	except Exception as ex:
+		print 'Fail!'
+		# TODO use cache
+		print traceback.format_exc()
+		return
+
+	for ip, node in nodes.iteritems():
+		if ip in ip_dict:
+			node.label = ip_dict[ip]
+
+
+
+
+def build_graph(nodes, edges):
+	G = pgv.AGraph(strict=True, directed=False, size='10!')
+
+	for n in nodes.values():
+		G.add_node(n.ip, label=n.label, version=n.version)
+
+	for e in edges:
+		G.add_edge(e.a.ip, e.b.ip, len=1.0)
+
+	G.layout(prog='neato', args='-Gepsilon=0.0001 -Gmaxiter=100000')
+
+	return G
+
+
 
 def gradient_color(ratio, colors):
 	jump = 1.0 / (len(colors) - 1)
@@ -165,44 +179,53 @@ def gradient_color(ratio, colors):
 	return '#%02x%02x%02x' % (r, g, b)
 
 
-out_data = {
-	'created': int(time.time()),
-	'nodes': [],
-	'edges': []
-}
+def get_graph_json(G):
+	max_neighbors = 1
+	for n in G.iternodes():
+		neighbors = len(G.neighbors(n))
+		if neighbors > max_neighbors:
+			max_neighbors = neighbors
+	print 'Max neighbors: %d' % max_neighbors
 
-for n in G.iternodes():
-	neighbor_ratio = len(G.neighbors(n)) / float(max_neighbors)
+	out_data = {
+		'created': int(time.time()),
+		'nodes': [],
+		'edges': []
+	}
 
-	pos = n.attr['pos'].split(',', 1)
+	for n in G.iternodes():
+		neighbor_ratio = len(G.neighbors(n)) / float(max_neighbors)
+		pos = n.attr['pos'].split(',', 1)
 
-	try:
-		name = node_names[n.name]
-	except:
-		name = n.attr['label']
+		out_data['nodes'].append({
+			'id': n.attr['label'],
+			'label': n.attr['label'],
+			'version': n.attr['version'],
+			'x': float(pos[0]),
+			'y': float(pos[1]),
+			'color': gradient_color(neighbor_ratio, [(100, 100, 100), (0, 0, 0)]),
+			'size': neighbor_ratio
+		})
 
-	out_data['nodes'].append({
-		'id': n.name,
-		'label': name,
-		'version': n.attr['version'],
-		'x': float(pos[0]),
-		'y': float(pos[1]),
-		# 'color': gradient_color(neighbor_ratio, [(255,60,20), (23,255,84), (41,187,255)]),
-		'color': gradient_color(neighbor_ratio, [(100, 100, 100), (0, 0, 0)]),
-		# 'color': gradient_color(neighbor_ratio, [(255, 255, 255), (255, 0 ,255)]),
-		'size': neighbor_ratio
-	})
+	for e in G.iteredges():
+		out_data['edges'].append({
+			'sourceID': e[0],
+			'targetID': e[1]
+		})
 
-# '#29BBFF', '#17FF54', '#FFBD0F', '#FF3C14', '#590409'
+	return json.dumps(out_data)
 
-for e in G.iteredges():
-	out_data['edges'].append({
-		'sourceID': e[0],
-		'targetID': e[1]
-	})
 
-json_output = json.dumps(out_data)
 
-f = open(graph_output, 'w')
-f.write(json_output)
-f.close()
+
+if __name__ == '__main__':
+	nodes, edges = get_full_network()
+	print 'Total:'
+	print '%d nodes, %d edges' % (len(nodes), len(edges))
+	
+	set_node_names(nodes)
+	G = build_graph(nodes, edges)
+	output = get_graph_json(G)
+
+	with open(conf.graph_output, 'w') as f:
+		f.write(output)
