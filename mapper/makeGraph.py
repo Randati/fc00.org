@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from mapperconf_sh import *
+from conf_sh import *
 import sys
 sys.path.append(cjdns_path + '/contrib/python/cjdnsadmin/')
 import adminTools as admin
