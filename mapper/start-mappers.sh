@@ -22,5 +22,9 @@ do
 	# Disable tun interface
 	sed -i 's/"type": "TUNInterface"/\/\/"type": "TUNInterface"/g' $file
 
-	$cjdns_path/cjdroute < $file
+	if [[ $* == *-d* ]]; then
+		gdb $cjdns_path/cjdroute -ex 'set follow-fork-mode child' -ex 'run < '"${file}" -ex 'thread apply all bt' -ex 'quit' 2>&1 | tee gdb-$i.log &
+	else
+		$cjdns_path/cjdroute < $file
+	fi
 done
