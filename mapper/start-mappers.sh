@@ -23,7 +23,10 @@ do
 	sed -i 's/"type": "TUNInterface"/\/\/"type": "TUNInterface"/g' $file
 
 	if [[ $* == *-d* ]]; then
-		gdb $cjdns_path/cjdroute -ex 'set follow-fork-mode child' -ex 'run < '"${file}" -ex 'thread apply all bt' -ex 'quit' 2>&1 | tee gdb-$i.log &
+		# Log to stdout
+		sed -i 's/\/\/ "logTo":"stdout"/"logTo":"stdout"/g' $file
+
+		gdb $cjdns_path/cjdroute -ex 'set follow-fork-mode child' -ex 'run < '"${file}" -ex 'thread apply all bt' -ex 'quit' > gdb-$i.log 2>&1 &
 	else
 		$cjdns_path/cjdroute < $file
 	fi

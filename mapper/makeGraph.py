@@ -96,8 +96,7 @@ def get_full_network():
 		try:
 			nodes, edges = get_network_from_cjdns(conf.rpc_connect, port, conf.rpc_pw)
 		except Exception as ex:
-			print 'Fail!'
-			print traceback.format_exc()
+			print 'Fail! Node unresponsive!'
 			continue
 
 		print '%d nodes, %d edges' % (len(nodes), len(edges))
