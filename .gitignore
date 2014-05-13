@@ -1,6 +1,6 @@
 .cache
 *.pyc
 graph.json
-mapper-confs/*
+mapper/mapper-confs/*
 conf_sh.py
 lighttp.conf
