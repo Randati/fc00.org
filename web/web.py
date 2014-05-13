@@ -12,7 +12,11 @@ def add_ip():
 @app.route('/')
 @app.route('/network')
 def page_network():
-	return render_template('network.html')
+	return render_template('network.html', page='network')
+
+@app.route('/about')
+def page_about():
+	return render_template('about.html', page='about')
 
 
 if __name__ == '__main__':
