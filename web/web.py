@@ -2,7 +2,7 @@ from flask import Flask, render_template, request
 from graphData import insert_graph_data
 
 app = Flask(__name__)
-app.debug = False
+app.config.from_pyfile('web_config.cfg')
 
 
 @app.context_processor
@@ -21,8 +21,10 @@ def page_about():
 
 @app.route('/sendGraph', methods=['POST'])
 def page_sendGraph():
+	print "Receiving graph from %s" % (request.remote_addr)
+	
 	data = request.form['data']
-	ret = insert_graph_data(data)
+	ret = insert_graph_data(app.config, data)
 	if ret:
 		return 'OK'
 	else:

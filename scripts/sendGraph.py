@@ -40,13 +40,19 @@ import cjdnsadmin
 
 
 def main():
+	print "Connecting to cjdns...",; sys.stdout.flush()
 	cjdns = cjdns_connect()
+	print "Done!"
+
 	success = generate_and_send_graph(cjdns)
 	sys.exit(0 if success else 1)
 
 def generate_and_send_graph(cjdns):
 	source_nodes = cjdns_get_node_store(cjdns)
+	print "Found %d source nodes." % len(source_nodes)
+
 	nodes, edges = cjdns_graph_from_nodes(cjdns, source_nodes)
+	print "Found %d nodes and %d links." % (len(nodes), len(edges))
 
 	graph_data = {
 		'nodes': [],
@@ -56,7 +62,6 @@ def generate_and_send_graph(cjdns):
 	for n in nodes.values():
 		graph_data['nodes'].append({
 			'ip':      n.ip,
-			'key':     n.key,
 			'version': n.version
 		})
 	
@@ -67,15 +72,19 @@ def generate_and_send_graph(cjdns):
 		})
 
 	json_str = json.dumps(graph_data)
-	return send_data(json_str)
+
+	print "Sending data...",; sys.stdout.flush()
+	success = send_data(json_str)
+	print ("Done!" if success else "Failed!")
+
+	return success
 
 
 
 class Node:
-	def __init__(self, ip, version=None, key=None):
+	def __init__(self, ip, version=None):
 		self.ip = ip
 		self.version = version
-		self.key = key
 
 class Edge:
 	def __init__(self, a, b):
@@ -139,9 +148,6 @@ def cjdns_graph_from_nodes(cjdns, source_nodes):
 		if not 'result' in resp:
 			continue
 		res = resp['result']
-
-		if 'key' in res:
-			node.key = res['key']
 
 		if 'protocolVersion' in res:
 			node.version = res['protocolVersion']
