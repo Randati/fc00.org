@@ -17,11 +17,8 @@ class Edge:
 	def __init__(self, a, b):
 		self.a, self.b = sorted([a, b])
 
-	def is_in(self, edges):
-		for e in edges:
-			if e.a.ip == self.a.ip and e.b.ip == self.b.ip:
-					return True
-		return False
+	def __eq__(self, that):
+		return self.a.ip == that.a.ip and self.b.ip == that.b.ip
 
 	def __repr__(self):
 		return 'Edge(a.ip="%s", b.ip="%s")' % (

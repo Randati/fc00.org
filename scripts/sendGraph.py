@@ -20,10 +20,12 @@ cjdns_path = '/home/user/cjdns'
 # If this is set to True connection details will be loaded from ~/.cjdnsadmin
 cjdns_use_default = True
 
-# otherwise these are used
-cjdns_ip       = '127.0.0.1'
-cjdns_port     = 11234
-cjdns_password = 'hunter2'
+# otherwise these are used.
+cjdns_ip         = '127.0.0.1'
+cjdns_first_port = 11234
+cjdns_password   = 'hunter2'
+cjdns_processes  = 1   # This can be used if you are running multiple instances
+                       # of cjdns with consecutive port numbers
 
 ###############################################################################
 
@@ -33,27 +35,50 @@ import sys
 import urllib
 import urllib2
 from collections import deque
+import traceback
 import json
 sys.path.append(cjdns_path + '/contrib/python/cjdnsadmin/')
 import cjdnsadmin
+import adminTools
 
 
 
 def main():
-	print "Connecting to cjdns...",; sys.stdout.flush()
-	cjdns = cjdns_connect()
-	print "Done!"
+	all_nodes = dict()
+	all_edges = []
 
-	success = generate_and_send_graph(cjdns)
+	for process in range(0, 1 if cjdns_use_default else cjdns_processes):
+		print "Connecting port %d..." % (cjdns_first_port + process),; sys.stdout.flush()
+
+		try:
+			cjdns = cjdns_connect(process)
+			print adminTools.whoami(cjdns)['IP']
+
+			nodes, edges = generate_graph(cjdns)
+
+			# Merge results
+			all_nodes.update(nodes)
+			for e in edges:
+				if not e in all_edges:
+					all_edges.append(e)
+		except Exception, err:
+			print "Failed!"
+			print traceback.format_exc()
+
+	success = send_graph(all_nodes, all_edges)
 	sys.exit(0 if success else 1)
 
-def generate_and_send_graph(cjdns):
+
+def generate_graph(cjdns):
 	source_nodes = cjdns_get_node_store(cjdns)
-	print "Found %d source nodes." % len(source_nodes)
+	print "  Found %d source nodes." % len(source_nodes)
 
 	nodes, edges = cjdns_graph_from_nodes(cjdns, source_nodes)
-	print "Found %d nodes and %d links." % (len(nodes), len(edges))
+	print "  Found %d nodes and %d links." % (len(nodes), len(edges))
 
+	return (nodes, edges)
+
+def send_graph(nodes, edges):
 	graph_data = {
 		'nodes': [],
 		'edges': []
@@ -80,29 +105,29 @@ def generate_and_send_graph(cjdns):
 	return success
 
 
-
 class Node:
 	def __init__(self, ip, version=None):
 		self.ip = ip
 		self.version = version
 
+	def __lt__(self, b):
+		return self.ip < b.ip
+
+
 class Edge:
 	def __init__(self, a, b):
 		self.a, self.b = sorted([a, b])
 
-	def is_in(self, edges):
-		for e in edges:
-			if e.a.ip == self.a.ip and e.b.ip == self.b.ip:
-				return True
-		return False
+	def __eq__(self, that):
+		return self.a.ip == that.a.ip and self.b.ip == that.b.ip
 
 
 
-def cjdns_connect():
+def cjdns_connect(process=0):
 	if cjdns_use_default:
 		return cjdnsadmin.connectWithAdminInfo()
 	else:
-		return cjdnsadmin.connect(cjdns_ip, cjdns_port, cjdns_password)
+		return cjdnsadmin.connect(cjdns_ip, cjdns_first_port + process, cjdns_password)
 
 def cjdns_get_node_store(cjdns):
 	nodes = dict()
@@ -171,7 +196,7 @@ def cjdns_graph_from_nodes(cjdns, source_nodes):
 
 				# Add edge
 				e = Edge(nodes[node.ip], nodes[child_ip])
-				if not e.is_in(edges):
+				if not e in edges:
 					edges.append(e)
 
 	return (nodes, edges)
