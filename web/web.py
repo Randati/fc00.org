@@ -25,10 +25,10 @@ def page_sendGraph():
 	
 	data = request.form['data']
 	ret = insert_graph_data(app.config, data)
-	if ret:
+	if ret == None:
 		return 'OK'
 	else:
-		return 'FAIL'
+		return 'Error: %s' % ret
 
 if __name__ == '__main__':
 	app.run(host='::')

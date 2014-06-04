@@ -6,30 +6,37 @@ def insert_graph_data(config, json_str):
 	try:
 		graph_data = json.loads(json_str)
 	except ValueError:
-		return False
+		return 'Invalid JSON'
 
 	nodes = dict()
 	edges = []
 
-	if not 'nodes' in graph_data or not 'edges' in graph_data:
-		return False
-	
-
 	try:
 		for n in graph_data['nodes']:
-			node = Node(n['ip'], version=n['version'])
-			nodes[n['ip']] = node
+			try:
+				node = Node(n['ip'], version=n['version'])
+				nodes[n['ip']] = node
+			except Exception:
+				pass
 
 		for e in graph_data['edges']:
-			edge = Edge(nodes[e['a']], nodes[e['b']])
-			edges.append(edge)
+			try:
+				edge = Edge(nodes[e['a']], nodes[e['b']])
+				edges.append(edge)
+			except Exception:
+				pass
+	except Exception:
+		return 'Invalid JSON nodes'
 
-	except TypeError:
-		return False
+	print "Accepted %d nodes and %d links." % (len(nodes), len(edges))
 
-	print "Received %d nodes and %d links." % (len(nodes), len(edges))
+	if len(nodes) == 0 or len(edges) == 0:
+		return 'No valid nodes or edges'
 
-	with NodeDB(config) as db:
-		db.insert_graph(nodes, edges)
+	try:
+		with NodeDB(config) as db:
+			db.insert_graph(nodes, edges)
+	except Exception:
+		return 'Database failure'
 
-	return True
+	return None

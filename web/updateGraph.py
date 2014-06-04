@@ -6,6 +6,7 @@ import graphPlotter
 
 def generate_graph(time_limit=60*60*3):
 	nodes, edges = load_graph_from_db(time_limit)
+	print '%d nodes, %d edges' % (len(nodes), len(edges))
 
 	graph = graphPlotter.position_nodes(nodes, edges)
 	json = graphPlotter.get_graph_json(graph)

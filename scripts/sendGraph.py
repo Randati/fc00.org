@@ -48,7 +48,7 @@ def main():
 	all_edges = []
 
 	for process in range(0, 1 if cjdns_use_default else cjdns_processes):
-		print "Connecting port %d..." % (cjdns_first_port + process),; sys.stdout.flush()
+		print 'Connecting port %d...' % (cjdns_first_port + process),; sys.stdout.flush()
 
 		try:
 			cjdns = cjdns_connect(process)
@@ -62,7 +62,7 @@ def main():
 				if not e in all_edges:
 					all_edges.append(e)
 		except Exception, err:
-			print "Failed!"
+			print 'Failed!'
 			print traceback.format_exc()
 
 	success = send_graph(all_nodes, all_edges)
@@ -71,10 +71,10 @@ def main():
 
 def generate_graph(cjdns):
 	source_nodes = cjdns_get_node_store(cjdns)
-	print "  Found %d source nodes." % len(source_nodes)
+	print '  Found %d source nodes.' % len(source_nodes)
 
 	nodes, edges = cjdns_graph_from_nodes(cjdns, source_nodes)
-	print "  Found %d nodes and %d links." % (len(nodes), len(edges))
+	print '  Found %d nodes and %d links.' % (len(nodes), len(edges))
 
 	return (nodes, edges)
 
@@ -98,9 +98,10 @@ def send_graph(nodes, edges):
 
 	json_str = json.dumps(graph_data)
 
-	print "Sending data...",; sys.stdout.flush()
-	success = send_data(json_str)
-	print ("Done!" if success else "Failed!")
+	print 'Sending data...',; sys.stdout.flush()
+	answer = send_data(json_str)
+	success = answer == 'OK'
+	print ('Done!' if success else answer)
 
 	return success
 
@@ -207,10 +208,9 @@ def send_data(graph_data):
 	post_data = urllib.urlencode({'data': graph_data})
 	req = urllib2.Request(url, post_data)
 	response = urllib2.urlopen(req)
-	output = response.read()
-	return output == 'OK'
+	return response.read()
 
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
 	main()
