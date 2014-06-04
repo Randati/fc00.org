@@ -17,7 +17,11 @@ chmod +x sendGraph.py
 git clone git@github.com:Randati/fc00.org.git
 sudo apt-get install python-flask python-flup python-mysqldb
 
-cd web
+cd fc00.org/web
+
+cp web_config.example.cfg web_config.cfg
+nano web_config.cfg
+
 cp lighttp.example.conf lighttp.conf
 nano lighttp.conf
 sudo sh -c "echo 'include \"/path/to/fc00.org/web/lighttp.conf\"' >> /etc/lighttpd/lighttpd.conf"
