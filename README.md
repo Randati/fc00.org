@@ -15,7 +15,7 @@ chmod +x sendGraph.py
 ## Web server
 ```bash
 git clone git@github.com:Randati/fc00.org.git
-sudo apt-get install python-flask python-flup
+sudo apt-get install python-flask python-flup python-mysqldb
 
 cd web
 cp lighttp.example.conf lighttp.conf
