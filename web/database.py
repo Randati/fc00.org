@@ -70,8 +70,10 @@ class NodeDB:
 
 		edges = []
 		for e in db_edges:
-			edges.append(Edge(nodes[e['a']], nodes[e['b']]))
-
+			try:
+				edges.append(Edge(nodes[e['a']], nodes[e['b']]))
+			except KeyError:
+				pass
 		return edges
 
 	def get_graph(self, time_limit):

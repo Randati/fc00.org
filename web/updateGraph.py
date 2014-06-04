@@ -20,7 +20,9 @@ def load_graph_from_db(time_limit):
 	config.from_pyfile('web_config.cfg')
 
 	with NodeDB(config) as db:
-		return db.get_graph(time_limit)
+		nodes = db.get_nodes(time_limit)
+		edges = db.get_edges(nodes, 60*60*24*7)
+		return (nodes, edges)
 
 
 if __name__ == '__main__':
