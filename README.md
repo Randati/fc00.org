@@ -24,5 +24,5 @@ nano web_config.cfg
 
 cp lighttp.example.conf lighttp.conf
 nano lighttp.conf
-sudo sh -c "echo 'include \"/path/to/fc00.org/web/lighttp.conf\"' >> /etc/lighttpd/lighttpd.conf"
+echo 'include  "/path/to/fc00.org/web/lighttp.conf"' | sudo tee -a /etc/lighttpd/lighttpd.conf"
 ```
