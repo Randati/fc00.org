@@ -384,7 +384,6 @@ $(document).ready(function() {
 
 	function handleScroll(e) {
 		var mouse = mousePos(e);
-		var e = window.event;
 		var delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail)));
 
 		var ratio = (delta < 0) ? (3 / 4) :  1 + (1 / 3);
